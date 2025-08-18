@@ -138,6 +138,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# MSBuild targets.
+# MSBuild targets
 bin/
 obj/
+
+# Intellij IDEA project
+.idea/
