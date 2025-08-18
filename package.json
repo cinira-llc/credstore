@@ -1,0 +1,31 @@
+{
+  "name": "credstore",
+  "version": "1.0.0",
+  "description": "Wrapper script for accessing the OS credential store in Linux. macOS, and Windows.",
+  "homepage": "https://github.com/cinira-llc/credstore#readme",
+  "bin": {
+    "credstore": "dist/credstore.js"
+  },
+  "bugs": {
+    "url": "https://github.com/cinira-llc/credstore/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cinira-llc/credstore.git"
+  },
+  "license": "MIT",
+  "author": "Matt Jensen",
+  "type": "module",
+  "main": "dist/credstore.js",
+  "scripts": {
+    "build": "dotnet publish && cp bin/Release/net8.0/publish/CredManagerLib.dll dist/ && tsc --project tsconfig-build.json",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "edge-js": "^24.0.4"
+  }
+}
