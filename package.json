@@ -18,7 +18,7 @@
   "type": "module",
   "main": "dist/credstore.js",
   "scripts": {
-    "build": "tsc --project tsconfig-build.json && dotnet publish CredManagerLib/ && cp CredManagerLib/bin/Release/net8.0/publish/CredManagerLib.dll dist/",
+    "build": "tsc --project tsconfig-build.json && dotnet build -c Release CredManagerLib/ && cp CredManagerLib/bin/Release/net48/CredManagerLib.dll dist/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
