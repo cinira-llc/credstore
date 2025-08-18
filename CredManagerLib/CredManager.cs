@@ -5,6 +5,18 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace CredManager {
+      class EdgeJsMethods
+      {
+          public async Task<object> Invoke(dynamic input)
+          {
+              return await Task.Run(() => {
+                  Console.WriteLine("EdgeJsMethods.Invoke called with input: " + input.ToString());
+                  return new object();
+              });
+          }
+      }
+
+
   [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
   public struct CredentialMem
   {

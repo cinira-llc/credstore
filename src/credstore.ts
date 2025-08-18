@@ -1,13 +1,15 @@
-import fs from "fs";
 import path from "path";
-
-console.log("Credstore module initialized.");
-
-const dll = path.join(process.argv[1]!!, "dist/CredManagerLib.dll");
+import edge from "edge-js";
 
 const credManager = edge.func({
-    assemblyFile: dll,
-    typeName: "CredManagerLib.CredManager",
-    methodName: "GetUserCredential"
+    assemblyFile: path.join(process.argv[1]!!, "dist/CredManagerLib.dll"),
+    typeName: "CredManager.EdgeJsMethods",
+    methodName: "Invoke"
 });
-console.log("CredManagerLib loaded from", dll);
+credManager("Hello from Edge.js", (error, result) => {
+    if (error) {
+        throw error;
+    } else {
+        console.dir(result);
+    }
+});

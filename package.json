@@ -18,10 +18,11 @@
   "type": "module",
   "main": "dist/credstore.js",
   "scripts": {
-    "build": "dotnet publish && cp bin/Release/net8.0/publish/CredManagerLib.dll dist/ && tsc --project tsconfig-build.json",
+    "build": "tsc --project tsconfig-build.json && dotnet publish CredManagerLib/ && cp CredManagerLib/bin/Release/net8.0/publish/CredManagerLib.dll dist/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
