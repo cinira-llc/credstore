@@ -1,3 +1,5 @@
+// Original source: https://stackoverflow.com/a/67944064
+
 using System.Text;
 using System;
 using System.Runtime.InteropServices;
