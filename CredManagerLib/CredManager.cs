@@ -5,17 +5,6 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace CredManager {
-      class EdgeJsMethods
-      {
-          public async Task<object> Invoke(dynamic input)
-          {
-              return await Task.Run(() => {
-                  Console.WriteLine("EdgeJsMethods.Invoke called with input: " + input.ToString());
-                  return new object();
-              });
-          }
-      }
-
 
   [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
   public struct CredentialMem
@@ -47,6 +36,22 @@ namespace CredManager {
 
   public class Util
   {
+    public async Task<dynamic> Invoke(dynamic input)
+    {
+        return await Task.Run(() => {
+            if ("get" == input[0]) {
+              return GetUserCredential($"{input[1]}/{input[2]}").password;
+            } else if ("set" == input[0]) {
+              SetUserCredential($"{input[1]}/{input[2]}", (string)input[1], (string)input[3]);
+            } else if ("delete" == input[0]) {
+              DeleteUserCredential($"{input[1]}/{input[2]}");
+            } else {
+              throw new Exception("Unknown command");
+            }
+            return null;
+        });
+    }
+
     [DllImport("advapi32.dll", EntryPoint = "CredDeleteW", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern bool CredDelete(string target, int type, int reservedFlag);
 

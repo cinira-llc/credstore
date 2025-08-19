@@ -1,15 +1,16 @@
-import path from "path";
 import edge from "edge-js";
+import path from "path";
+import process from "process";
 
 const credManager = edge.func({
     assemblyFile: path.resolve(process.argv[1]!!, "./dist/CredManagerLib.dll"),
-    typeName: "CredManager.EdgeJsMethods",
+    typeName: "CredManager.Util",
     methodName: "Invoke"
 });
-credManager("Hello from Edge.js", (error, result) => {
+credManager(process.argv.slice(2), (error, result) => {
     if (error) {
         throw error;
     } else {
-        console.dir(result);
+        console.log(result);
     }
 });

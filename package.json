@@ -9,6 +9,10 @@
   "bugs": {
     "url": "https://github.com/cinira-llc/credstore/issues"
   },
+  "files": [
+    "dist",
+    "CredManagerLib/bin/Release/net48/CredManagerLib.dll"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cinira-llc/credstore.git"
@@ -18,7 +22,7 @@
   "type": "module",
   "main": "dist/credstore.js",
   "scripts": {
-    "build": "tsc --project tsconfig-build.json && dotnet build -c Release CredManagerLib/ && cp CredManagerLib/bin/Release/net48/CredManagerLib.dll dist/",
+    "build": "tsc --project tsconfig-build.json && dotnet build -c Release CredManagerLib/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
