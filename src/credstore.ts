@@ -1,16 +1,11 @@
-import edge from "edge-js";
-import path from "path";
+#!/usr/bin/env node
 import process from "process";
 
-const credManager = edge.func({
-    assemblyFile: path.resolve(process.argv[1]!!, "./dist/CredManagerLib.dll"),
-    typeName: "CredManager.Util",
-    methodName: "Invoke"
-});
-credManager(process.argv.slice(2), (error, result) => {
-    if (error) {
-        throw error;
-    } else {
-        console.log(result);
-    }
-});
+const cwd = process.argv[1];
+if (!(process.env["OS"] || "").startsWith("Windows_")) {
+    console.log(`PWD: ${cwd}`);
+    console.log(`ARGV: ${JSON.stringify(process.argv)}`);
+} else {
+    const runWindows = require("./windows");
+    runWindows(cwd, process.argv.slice(2));
+}

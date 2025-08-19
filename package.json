@@ -11,7 +11,7 @@
   },
   "files": [
     "dist",
-    "CredManagerLib/bin/Release/net48/CredManagerLib.dll"
+    "CredManagerLib/bin/Release/net48"
   ],
   "repository": {
     "type": "git",
