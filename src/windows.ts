@@ -1,13 +1,13 @@
-import edge from "edge-js";
 import path from "path";
 
-function runWindows(home: string, args: string[]) {
+const runWindows = (home: string, args: string[]) => {
+    const edge = require("edge-js");
     const credManager = edge.func({
         assemblyFile: path.resolve(home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
         typeName: "CredManager.Util",
         methodName: "Invoke"
     });
-    credManager(args, (error, result) => {
+    credManager(args, (error: any, result: any) => {
         if (error) {
             throw error;
         } else {
@@ -16,4 +16,6 @@ function runWindows(home: string, args: string[]) {
     });
 }
 
-export default runWindows;
+export {
+    runWindows
+};

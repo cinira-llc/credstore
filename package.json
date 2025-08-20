@@ -19,7 +19,6 @@
   },
   "license": "MIT",
   "author": "Matt Jensen",
-  "type": "module",
   "main": "dist/credstore.js",
   "scripts": {
     "build": "tsc --project tsconfig-build.json && dotnet build -c Release CredManagerLib/",

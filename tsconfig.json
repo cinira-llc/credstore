@@ -5,11 +5,10 @@ the IDE to misbehave in various ways. */
   "compilerOptions": {
     "strict": true,
     "target": "ESNext",
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "lib": [
-      "DOM",
       "ESNext"
     ],
     "outDir": "dist"
