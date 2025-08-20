@@ -13,14 +13,13 @@ const run = (home: string, args: string[]) => {
 }
 
 const cwd = process.cwd();
-fs.stat(path.resolve(cwd, "./dist"), (err: any, stats: any) => {
-    if (null != err) {
-        throw err;
-    }
+fs.stat(path.resolve(cwd, "./dist/credstore.js"), (err: any, stats: any) => {
     const args = process.argv.slice(2);
-    if (stats.isDirectory()) {
+    if (null == err) {
         run(cwd, args);
+    } else if ("code" in err && err.code === "ENOENT") {
+        run(path.resolve(path.dirname(process.argv[1]), ".."), args);
     } else {
-        run(process.argv[1], args);
+        throw err;
     }
 });
