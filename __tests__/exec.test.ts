@@ -1,24 +1,29 @@
 import {execute} from "../src/exec";
 
 describe("exec.ts", () => {
+    const [node] = process.argv;
     describe("execute()", () => {
-        it("should capture stderr from a command", async () => {
-            const result = await execute("ls", ["/does/not/exist"]);
-            expect(result.code).toBe(2);
-            expect(result.stderr!!.toString("utf-8")).toContain("/does/not/exist");
+        it("should return the process exit code", async () => {
+            const result = await execute(node, ["-e", "process.exit(123);"]);
+            expect(result.code).toBe(123);
+        });
+        it("should capture stderr", async () => {
+            const result = await execute(node, ["-e", "console.error('This is an stderr.');"]);
+            expect(result.code).toBe(0);
+            expect(result.stderr!!.toString("utf-8")).toBe("This is an stderr.\n");
             expect(result.stdout).toBeUndefined();
         });
-        it("should capture stdout from a command", async () => {
-            const result = await execute("echo", ["-n", "Hello, World!"]);
+        it("should capture stdout", async () => {
+            const result = await execute(node, ["-e", "console.log('This is stdout.');"]);
             expect(result.code).toBe(0);
-            expect(result.stdout!!.toString("utf-8")).toBe("Hello, World!");
             expect(result.stderr).toBeUndefined();
+            expect(result.stdout!!.toString("utf-8")).toBe("This is stdout.\n");
         });
-        it("should pipe provided input to a command", async () => {
-            const result = await execute("cat", [], Buffer.from("Hello, World!", "utf-8"));
+        it("should pipe stdin", async () => {
+            const result = await execute(node, ["-"], Buffer.from("console.log('This is stdout from stdin.');", "utf-8"));
             expect(result.code).toBe(0);
-            expect(result.stdout!!.toString("utf-8")).toBe("Hello, World!");
             expect(result.stderr).toBeUndefined();
+            expect(result.stdout!!.toString("utf-8")).toBe("This is stdout from stdin.\n");
         });
     });
 });
