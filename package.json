@@ -22,10 +22,13 @@
   "main": "dist/credstore.js",
   "scripts": {
     "build": "tsc --project tsconfig-build.json && dotnet build -c Release CredManagerLib/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --coverage"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
+    "jest": "^30.0.5",
+    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
