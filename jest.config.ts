@@ -8,6 +8,7 @@ const options: JestConfigWithTsJest = {
         "(.*)\\.js$": "$1"
     },
     reporters: [
+        "default",
         [
             "jest-junit",
             {
