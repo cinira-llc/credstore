@@ -1,5 +1,4 @@
 import child_process from "child_process";
-import {SpawnOptions, SpawnOptionsWithoutStdio} from "node:child_process";
 
 type ExecuteResult = {
     code: number;
@@ -43,5 +42,6 @@ const execute = async (cmd: string, args: string[] = [], stdin?: Buffer) => new 
 });
 
 export {
-    execute
+    execute,
+    ExecuteResult
 };

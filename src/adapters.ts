@@ -1,5 +1,5 @@
 import path from "path";
-import type {Configs, Adapter} from "./types";
+import {execute, ExecuteResult} from "./exec";
 import {evaluate, findExecutable, findHome} from "./utils";
 
 /**
@@ -7,28 +7,65 @@ import {evaluate, findExecutable, findHome} from "./utils";
  */
 type CredentialManagerDelegate = (args: string[], callback: (error: any, result: any) => void) => void;
 
-interface CommandLineConfig {
+/**
+ * Lookup function for CLI commands.
+ */
+type CommandLookup = (command: string) => Promise<string | undefined>;
+
+type Action = "delete" | "get" | "set";
+
+/**
+ * Adapter to a credential store.
+ */
+interface Adapter {
+    delete(service: string, username: string): Promise<void>;
+
+    get(service: string, username: string): Promise<string>;
+
+    set(service: string, username: string, password: string): Promise<void>;
+}
+
+interface CLIAdapterConfig {
     executable: string;
-    actions: Record<"delete" | "get" | "set", {
+    actions: Record<Action, {
         args: string[];
         stdin?: string;
     }>;
 }
 
-class CommandLineAdapter implements Adapter {
-    constructor(private readonly config: CommandLineConfig) {
+class CLIAdapter implements Adapter {
+    constructor(private readonly config: CLIAdapterConfig) {
     }
 
-    delete(service: string, username: string): Promise<void> {
-        return Promise.resolve(undefined);
+    async delete(service: string, username: string): Promise<void> {
+        const {executable, actions: {delete: action}} = this.config;
+        return this.execute(this.config.actions.delete, {service, username}).then();
     }
 
-    get(service: string, username: string): Promise<string> {
-        return Promise.resolve("");
+    async get(service: string, username: string): Promise<string> {
+        return this.execute(this.config.actions.get, {service, username}).then(result => result as string);
     }
 
-    set(service: string, username: string, password: string): Promise<void> {
-        return Promise.resolve(undefined);
+    async set(service: string, username: string, password: string): Promise<void> {
+        return this.execute(this.config.actions.set, {service, username, password}).then();
+    }
+
+    private execute(action: CLIAdapterConfig["actions"][Action], params: Record<string, string>): Promise<string | void> {
+        const {executable} = this.config;
+        const args = action.args.map(arg => evaluate(`\`${arg}\``, params));
+        return new Promise((resolve, reject) => {
+            const {stdin} = action;
+            let result: ExecuteResult;
+            if (!stdin) {
+                execute(executable, args).then(result => {
+                    resolve(result.stdout!!.toString("utf-8").trim());
+                });
+            } else {
+                execute(executable, args, Buffer.from(evaluate(stdin, params), "utf-8")).then(result => {
+                    resolve(result.stdout!!.toString("utf-8").trim());
+                });
+            }
+        });
     }
 }
 
@@ -36,7 +73,16 @@ class CommandLineAdapter implements Adapter {
  * Adapter to the Windows Credential Manager.
  */
 class CredentialManagerAdapter implements Adapter {
-    constructor(private readonly delegate: CredentialManagerDelegate) {
+    private get delegate(): Promise<CredentialManagerDelegate> {
+        const edge = require("edge-js");
+        return Promise.resolve(edge.func({
+            assemblyFile: path.resolve(this.home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
+            typeName: "CredManager.Util",
+            methodName: "Invoke"
+        }));
+    }
+
+    constructor(private readonly home: string) {
     }
 
     async delete(service: string, username: string): Promise<void> {
@@ -52,9 +98,10 @@ class CredentialManagerAdapter implements Adapter {
         return this.execute("set", service, username, password).then();
     }
 
-    private execute(...args: string[]): Promise<string | void> {
+    private async execute(...args: string[]): Promise<string | void> {
+        const delegate = await this.delegate;
         return new Promise((resolve, reject) => {
-            this.delegate(args, (error: any, result: any) => {
+            delegate(args, (error: any, result: any) => {
                 if (null != error) {
                     reject(error);
                     return;
@@ -63,67 +110,25 @@ class CredentialManagerAdapter implements Adapter {
             });
         })
     }
-
-    static create(home: string): Promise<CredentialManagerAdapter> {
-        const edge = require("edge-js");
-        return Promise.resolve(new CredentialManagerAdapter(edge.func({
-            assemblyFile: path.resolve(home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
-            typeName: "CredManager.Util",
-            methodName: "Invoke"
-        })));
-    }
 }
 
 class Adapters {
     constructor(
         private readonly home: string,
-        private readonly configs: Configs,
         private readonly env: NodeJS.Dict<string>,
-        private readonly commands: (name: string) => Promise<string | undefined>
+        private readonly lookup: CommandLookup
     ) {
     }
 
     async select(): Promise<Adapter> {
         if ((this.env["OS"] || "").startsWith("Windows_")) {
-            return CredentialManagerAdapter.create(this.home);
+            return new CredentialManagerAdapter(this.home);
         }
-        const {commands} = this;
-        for (const command in ["security", "secret-tool"]) {
-            const executable = await commands(command);
+        const {lookup} = this;
+        for (const [command, config] of Object.entries(cliAdapterConfigsByCommand)) {
+            const executable = await lookup(command);
             if (!!executable) {
-                switch (command) {
-                    case "secret-tool":
-                        return Promise.resolve(new CommandLineAdapter({
-                            actions: {
-                                delete: {
-                                    args: ["clear", "service", "${service}", "username", "${username}"]
-                                },
-                                get: {
-                                    args: ["lookup", "service", "${service}", "username", "${username}"]
-                                },
-                                set: {
-                                    args: ["store", "--label", "${service}/${username}", "service", "${service}", "username", "${username}"],
-                                    stdin: "${password}"
-                                },
-                            },
-                            executable
-                        }));
-                    case "security":
-                        return Promise.resolve(new CommandLineAdapter({
-                            actions: {
-                                delete: {
-                                    args: ["delete-generic-password", "-s", "${service}", "-a", "${username}"]
-                                },
-                                get: {
-                                    args: ["find-generic-password", "-s", "${service}", "-a", "${username}", "-w"]
-                                },
-                                set: {
-                                    args: ["add-generic-password", "-s", "${service}", "-a", "${username}", "-w", "${password}"]
-                                }
-                            },
-                            executable
-                        }));
-                }
+                return Promise.resolve(new CLIAdapter({executable, ...config}));
             }
         }
         throw new Error("Unable to locate a supported credential store.");
@@ -131,10 +136,49 @@ class Adapters {
 
     static async create() {
         const home = await findHome(process.cwd());
-        return new Adapters(home, [], process.env, findExecutable);
+        return new Adapters(home, process.env, findExecutable);
     }
 }
 
+/**
+ * Configurations for supported command line credential access tools.
+ */
+const cliAdapterConfigsByCommand: Record<string, Omit<CLIAdapterConfig, "executable">> = {
+
+    /* Ubuntu secret-tool. */
+    "secret-tool": {
+        actions: {
+            delete: {
+                args: ["clear", "service", "${service}", "username", "${username}"]
+            },
+            get: {
+                args: ["lookup", "service", "${service}", "username", "${username}"]
+            },
+            set: {
+                args: ["store", "--label", "${service}/${username}", "service", "${service}", "username", "${username}"],
+                stdin: "${password}"
+            }
+        }
+    },
+
+    /* macOS security. */
+    "security": {
+        actions: {
+            delete: {
+                args: ["delete-generic-password", "-s", "${service}", "-a", "${username}"]
+            },
+            get: {
+                args: ["find-generic-password", "-s", "${service}", "-a", "${username}", "-w"]
+            },
+            set: {
+                args: ["add-generic-password", "-s", "${service}", "-a", "${username}", "-w", "${password}"]
+            }
+        },
+    }
+}
+
+/* Module exports. */
 export {
+    Adapter,
     Adapters
 };
