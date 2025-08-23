@@ -1,5 +1,5 @@
 {
-  "name": "credstore",
+  "name": "@cinira-llc/credstore",
   "version": "1.0.0",
   "description": "Wrapper script for accessing the OS credential store in Linux. macOS, and Windows.",
   "homepage": "https://github.com/cinira-llc/credstore#readme",
