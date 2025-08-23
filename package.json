@@ -22,7 +22,7 @@
   "main": "dist/credstore.js",
   "scripts": {
     "build": "tsc --project tsconfig-build.json && dotnet build -c Release CredManagerLib/",
-    "clean": "rm -rf ./coverage ./dist ./CredManagerLib/bin ./CredManagerLib/obj",
+    "clean": "rm -rf ./build ./coverage ./dist ./CredManagerLib/bin ./CredManagerLib/obj",
     "format": "prettier --write \"src/**/*.ts\"",
     "prepare": "npm run build",
     "prepublishOnly": "npm test",
@@ -32,6 +32,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
     "jest": "^30.0.5",
+    "jest-junit": "^16.0.0",
     "prettier": "^3.6.2",
     "semantic-release": "^24.2.7",
     "ts-jest": "^29.4.1",
