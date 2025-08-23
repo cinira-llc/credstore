@@ -187,5 +187,7 @@ const cliAdapterConfigsByCommand: Record<string, Omit<CLIAdapterConfig, "executa
 /* Module exports. */
 export {
     Adapter,
-    Adapters
+    Adapters,
+    CLIAdapter,
+    CredentialManagerAdapter
 };
