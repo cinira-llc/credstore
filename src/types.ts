@@ -1,11 +1,6 @@
-interface CredentialAccess {
-    delete(service: string, username: string): Promise<void>;
-
-    get(service: string, username: string): Promise<string>;
-
-    set(service: string, username: string, password: string): Promise<void>;
-}
-
+/**
+ * Adapter to a credential store.
+ */
 interface Adapter {
     delete(service: string, username: string): Promise<void>;
 
@@ -14,21 +9,44 @@ interface Adapter {
     set(service: string, username: string, password: string): Promise<void>;
 }
 
-type Adapters = Record<string, {
+type Configs = Array<AdapterConfig>;
+
+interface CommandLineConfig {
     adapter: "CommandLine",
     match: string,
-    actions: {
+    args: {
         delete: string[]
         get: string[]
         set: string[]
     }
-} | {
-    adapter: "WindowsCredentialManager"
-    match: string
-}>;
+}
 
+interface WindowsCredentialManagerConfig {
+    adapter: "WindowsCredentialManager",
+    match: string
+}
+
+function isCommandLineConfig(config: any): config is CommandLineConfig {
+    return "object" === typeof config
+        && "adapter" in config
+        && "CommandLine" === config.adapter;
+}
+
+function isWindowsCredentialManagerConfig(config: any): config is WindowsCredentialManagerConfig {
+    return "object" === typeof config
+        && "adapter" in config
+        && "WindowsCredentialManager" === config.adapter;
+}
+
+type AdapterConfig =
+    | CommandLineConfig
+    | WindowsCredentialManagerConfig;
+
+/* Module exports. */
 export {
     Adapter,
-    Adapters,
-    CredentialAccess
+    AdapterConfig,
+    Configs,
+    isCommandLineConfig,
+    isWindowsCredentialManagerConfig
 };
