@@ -1,5 +1,6 @@
 import path from "path";
-import {execute, ExecuteResult} from "./exec";
+
+import {execute} from "./exec";
 import {evaluate, findExecutable, findHome} from "./utils";
 
 /**
@@ -55,16 +56,22 @@ class CLIAdapter implements Adapter {
         const args = action.args.map(arg => evaluate(`\`${arg}\``, params));
         return new Promise((resolve, reject) => {
             const {stdin} = action;
-            let result: ExecuteResult;
-            if (!stdin) {
-                execute(executable, args).then(result => {
-                    resolve(result.stdout!!.toString("utf-8").trim());
+            const input = null == stdin ? undefined : evaluate(`\`${stdin}\``, params);
+            execute(executable, args, input)
+                .then(({code, stderr, stdout}) => {
+                    if (0 === code) {
+                        if (null == stdout) {
+                            resolve();
+                        } else {
+                            resolve(stdout.toString("utf-8").trim());
+                        }
+                    } else if (null == stderr) {
+                        reject(new Error(`Command exited with code [${code}].`));
+                    } else {
+                        const error = stderr.toString("utf-8").trim();
+                        reject(new Error(`Command exited with code [${code}]: ${error}`));
+                    }
                 });
-            } else {
-                execute(executable, args, Buffer.from(evaluate(stdin, params), "utf-8")).then(result => {
-                    resolve(result.stdout!!.toString("utf-8").trim());
-                });
-            }
         });
     }
 }
