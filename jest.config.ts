@@ -1,13 +1,22 @@
-import { JestConfigWithTsJest } from "ts-jest";
+import {JestConfigWithTsJest} from "ts-jest";
 
 const options: JestConfigWithTsJest = {
-  preset: "ts-jest",
-  testEnvironment: "node",
-  moduleDirectories: ["node_modules", "src"],
-  moduleNameMapper: {
-    "(.*)\\.js$": "$1"
-  },
-  testMatch: ["**/__tests__/**/*.test.ts"]
+    preset: "ts-jest",
+    testEnvironment: "node",
+    moduleDirectories: ["node_modules", "src"],
+    moduleNameMapper: {
+        "(.*)\\.js$": "$1"
+    },
+    reporters: [
+        [
+            "jest-junit",
+            {
+                "outputDirectory": "./build/report",
+                "outputName": "test-results.xml"
+            }
+        ]
+    ],
+    testMatch: ["**/__tests__/**/*.test.ts"]
 };
 
 export default options;
