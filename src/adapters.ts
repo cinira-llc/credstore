@@ -105,7 +105,8 @@ class CredentialManagerAdapter implements Adapter {
         return new Promise((resolve, reject) => {
             delegate(args, (error: any, result: any) => {
                 if (null != error) {
-                    reject(error);
+                    const message = `Credential Manager failed with result ${error.HResult}: ${error.Message}`;
+                    reject(new Error(message));
                     return;
                 }
                 resolve(result);
