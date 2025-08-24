@@ -1,7 +1,7 @@
 import path from "path";
 
 import {execute} from "./exec";
-import {evaluate, findExecutable, findHome} from "./utils";
+import {evaluate, findCommand, findHome} from "./utils";
 
 /**
  * Edge.js delegate to the Windows Credential Manager, see `CredManager.cs`.
@@ -114,6 +114,9 @@ class CredentialManagerAdapter implements Adapter {
     }
 }
 
+/**
+ * Selector for the appropriate credential store adapter based on the current platform and environment.
+ */
 class Adapters {
     constructor(
         private readonly home: string,
@@ -138,7 +141,7 @@ class Adapters {
 
     static async create() {
         const home = await findHome(process.cwd());
-        return new Adapters(home, process.env, findExecutable);
+        return new Adapters(home, process.env, findCommand);
     }
 }
 

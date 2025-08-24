@@ -1,25 +1,36 @@
 import child_process from "child_process";
 
+/**
+ * Result of executing a command in a child process.
+ */
 type ExecuteResult = {
     code: number;
-    stderr: Buffer | undefined;
-    stdout: Buffer | undefined;
+    stderr?: Buffer;
+    stdout?: Buffer;
 }
 
-const execute = async (cmd: string, args: string[] = [], stdin?: Buffer) => new Promise<ExecuteResult>((resolve, reject) => {
-    const stderr: Buffer[] = [];
-    const stdout: Buffer[] = [];
-    const proc = child_process.spawn(cmd, args, {shell: false})
-        .on("error", err => {
-            reject(err);
-        }).on("spawn", () => {
-            if (null != stdin) {
-                const {stdin: input} = proc;
-                input.write(stdin);
-                input.end();
-            }
-        }).on("close", code => {
-            resolve({
+/**
+ * Execute a command in a child process, passing it a given array of arguments and, optionally, a Buffer to its standard
+ * input.
+ *
+ * @param command the command.
+ * @param args the arguments.
+ * @param stdin the standard input.
+ */
+const execute = (command: string, args: string[] = [], stdin?: Buffer) =>
+    new Promise<ExecuteResult>((resolve, reject) => {
+        const stderr: Buffer[] = [];
+        const stdout: Buffer[] = [];
+        const proc = child_process.spawn(command, args, {shell: false})
+            .on("error", reject)
+            .on("spawn", () => {
+                if (undefined !== stdin) {
+                    const {stdin: input} = proc;
+                    input.write(stdin);
+                    input.end();
+                }
+            })
+            .on("close", code => resolve({
                 code: code || 0,
                 get stderr() {
                     if (1 === stderr.length) {
@@ -35,12 +46,12 @@ const execute = async (cmd: string, args: string[] = [], stdin?: Buffer) => new 
                         return Buffer.concat(stdout);
                     }
                 }
-            });
-        });
-    proc.stdout.on("data", data => stdout.push(data));
-    proc.stderr.on("data", data => stderr.push(data));
-});
+            }));
+        proc.stdout.on("data", data => stdout.push(data));
+        proc.stderr.on("data", data => stderr.push(data));
+    });
 
+/* Module exports. */
 export {
     execute,
     ExecuteResult

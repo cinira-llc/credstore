@@ -2,6 +2,8 @@
 import process from "process";
 import {Adapters} from "./adapters";
 
+/* Note: the Node process terminates when the event loop is empty, so this IIFE will run to completion and the exit code
+will be 0 unless we explicitly exit with some other value. */
 (async () => {
     const adapters = await Adapters.create();
     const adapter = await adapters.select();
@@ -25,6 +27,4 @@ import {Adapters} from "./adapters";
         console.error((err as Error).message);
         process.exit(1);
     }
-    process.exit(0);
 })();
-

@@ -8,9 +8,9 @@ describe("exec.ts", () => {
             expect(result.code).toBe(123);
         });
         it("should capture stderr", async () => {
-            const result = await execute(node, ["-e", "console.error('This is an stderr.');"]);
+            const result = await execute(node, ["-e", "console.error('This is stderr.');"]);
             expect(result.code).toBe(0);
-            expect(result.stderr!!.toString("utf-8")).toBe("This is an stderr.\n");
+            expect(result.stderr!!.toString("utf-8")).toBe("This is stderr.\n");
             expect(result.stdout).toBeUndefined();
         });
         it("should capture stdout", async () => {

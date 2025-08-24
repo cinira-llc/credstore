@@ -1,4 +1,4 @@
-import {evaluate, findExecutable} from "../src/utils";
+import {evaluate, findCommand} from "../src/utils";
 
 describe('utils.ts', () => {
     describe("evaluate()", () => {
@@ -12,12 +12,12 @@ describe('utils.ts', () => {
             expect(evaluate("add456(a)", {add456: (v: number) => v + 456, a: 123})).toBe(579);
         });
     });
-    describe("findExecutable()", () => {
+    describe("findCommand()", () => {
         it("should return undefined if the command does not exist", () => {
-            expect(findExecutable("nonexistent-command")).resolves.toBeUndefined();
+            expect(findCommand("nonexistent-command")).resolves.toBeUndefined();
         });
         it("should return the command path if the command exists", () => {
-            expect(findExecutable("ls")).resolves.toMatch(/\/ls(\.exe)?$/);
+            expect(findCommand("ls")).resolves.toMatch(/\/ls(\.exe)?$/);
         });
     });
 });
