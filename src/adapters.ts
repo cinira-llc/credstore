@@ -56,21 +56,16 @@ class CLIAdapter implements Adapter {
         const args = action.args.map(arg => evaluate(`\`${arg}\``, params));
         return new Promise((resolve, reject) => {
             const {stdin} = action;
-            const input = null == stdin ? undefined : evaluate(`\`${stdin}\``, params);
-            execute(executable, args, input)
+            execute(executable, args, null == stdin ? undefined : evaluate(`\`${stdin}\``, params))
                 .then(({code, stderr, stdout}) => {
                     if (0 === code) {
-                        if (null == stdout) {
-                            resolve();
-                        } else {
-                            resolve(stdout.toString("utf-8").trim());
-                        }
-                    } else if (null == stderr) {
-                        reject(new Error(`Command exited with code [${code}].`));
-                    } else {
-                        const error = stderr.toString("utf-8").trim();
-                        reject(new Error(`Command exited with code [${code}]: ${error}`));
+                        resolve(undefined === stdout ? undefined : stdout.toString("utf-8").trim());
+                        return;
                     }
+                    const message = undefined === stderr ?
+                        `Command [${executable}] exited with code ${code}.` :
+                        `Command [${executable}] exited with code ${code}: ${stderr.toString("utf-8").trim()}`;
+                    reject(new Error(message));
                 });
         });
     }
