@@ -14,17 +14,16 @@ will be 0 unless we explicitly exit with some other value. */
         console.log(`       ${command} get <service> <account>`);
         console.log(`       ${command} set <service> <account> <password>`);
     } else if (-1 !== argv.indexOf("--version") || -1 !== argv.indexOf("-v")) {
+        let version = "(development build)";
         const mainPath = require.main?.path;
         if (null != mainPath) {
             try {
-                const version = await fs.promises.readFile(path.resolve(mainPath, "./VERSION"), "utf8");
-                console.log(`credstore ${version}`);
-                process.exit(0);
+                version = await fs.promises.readFile(path.resolve(mainPath, "./VERSION"), "utf8");
             } catch (err) {
                 /* Ignore. */
             }
         }
-        console.log("credstore (development build)");
+        console.log(`credstore ${version}`);
     } else {
         const adapters = await Adapters.create();
         const adapter = await adapters.select();
