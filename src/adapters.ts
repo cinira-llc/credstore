@@ -74,15 +74,22 @@ class CLIAdapter implements Adapter {
  * Adapter to the Windows Credential Manager.
  */
 class CredentialManagerAdapter implements Adapter {
-    private readonly delegate: CredentialManagerDelegate;
+    private readonly invoke: (callback: (delegate: CredentialManagerDelegate) => Promise<any>) => Promise<any>;
 
     constructor(home: string) {
-        const edge = require("edge-js");
-        this.delegate = edge.func({
-            assemblyFile: path.resolve(home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
-            typeName: "CredManager.Util",
-            methodName: "Invoke"
-        });
+
+        /* Note: edge-js is a native module and access must be deferred until needed for non-Windows platforms. */
+        let delegate: CredentialManagerDelegate;
+        this.invoke = callback => {
+            if (null == delegate) {
+                delegate = require("edge-js").func({
+                    assemblyFile: path.resolve(home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
+                    typeName: "CredManager.Util",
+                    methodName: "Invoke"
+                });
+            }
+            return callback(delegate);
+        }
     }
 
     async delete(service: string, username: string): Promise<void> {
@@ -99,8 +106,8 @@ class CredentialManagerAdapter implements Adapter {
     }
 
     private async execute(...args: string[]): Promise<string | void> {
-        const {delegate} = this;
-        return new Promise((resolve, reject) => {
+        const {invoke} = this;
+        return invoke(delegate => new Promise((resolve, reject) => {
             delegate(args, (error: any, result: any) => {
                 if (null != error) {
                     const message = `Credential Manager failed with result ${error.HResult}: ${error.Message}`;
@@ -109,7 +116,7 @@ class CredentialManagerAdapter implements Adapter {
                 }
                 resolve(result);
             });
-        })
+        }));
     }
 }
 
