@@ -49,12 +49,13 @@
   },
   "release": {
     "plugins": [
+      "@semantic-release/commit-analyzer",
       "@semantic-release/github",
       "@semantic-release/npm",
       [
         "@semantic-release/exec",
         {
-          "prepare": "echo -n ${nextRelease.version} > ./dist/VERSION"
+          "prepare": "echo -n '${nextRelease.version}' > ./dist/VERSION"
         }
       ]
     ]
