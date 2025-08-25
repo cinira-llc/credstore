@@ -10,7 +10,10 @@ import child_process from "child_process";
  */
 const commandExists = async (command: string): Promise<boolean> => new Promise<boolean>(resolve => {
     child_process.exec(command, err => {
-        resolve(err == null);
+
+        /* Exit code will be 1 on Windows or 127 on Unix if the command does not exist. */
+        const code = err?.code;
+        resolve(127 !== code && 1 !== code);
     });
 });
 
