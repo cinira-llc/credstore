@@ -37,6 +37,7 @@ const findCommand = (command: string): Promise<string | undefined> => {
  * @param cwd the current working directory.
  */
 const findHome = async (cwd: string) => {
+    console.log(JSON.stringify(process.argv));
     try {
         await fs.promises.stat(path.resolve(cwd, "./dist/credstore.js"));
         console.log(`Found1 [${cwd}]`);
