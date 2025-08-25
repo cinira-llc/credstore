@@ -55,7 +55,7 @@
       [
         "@semantic-release/exec",
         {
-          "prepareCmd": "echo -n '${nextRelease.version}' > ./dist/VERSION"
+          "prepareCmd": "sed -i 's/@@snapshot@@/${nextRelease.version}'/g ./dist/credstore.js"
         }
       ]
     ]
