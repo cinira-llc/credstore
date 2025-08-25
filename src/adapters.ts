@@ -1,17 +1,12 @@
 import path from "path";
 
 import {execute} from "./exec";
-import {evaluate, findCommand, findHome} from "./utils";
+import {commandExists, evaluate, findHome} from "./utils";
 
 /**
  * Edge.js delegate to the Windows Credential Manager, see `CredManager.cs`.
  */
 type CredentialManagerDelegate = (args: string[], callback: (error: any, result: any) => void) => void;
-
-/**
- * Lookup function for CLI commands.
- */
-type CommandLookup = (command: string) => Promise<string | undefined>;
 
 type Action = "delete" | "get" | "set";
 
@@ -27,7 +22,7 @@ interface Adapter {
 }
 
 interface CLIAdapterConfig {
-    executable: string;
+    command: string;
     actions: Record<Action, {
         args: string[];
         stdin?: string;
@@ -51,19 +46,19 @@ class CLIAdapter implements Adapter {
     }
 
     private execute(action: CLIAdapterConfig["actions"][Action], params: Record<string, string>): Promise<string | void> {
-        const {executable} = this.config;
+        const {command} = this.config;
         const args = action.args.map(arg => evaluate(`\`${arg}\``, params));
         return new Promise((resolve, reject) => {
             const {stdin} = action;
-            execute(executable, args, null == stdin ? undefined : evaluate(`\`${stdin}\``, params))
+            execute(command, args, null == stdin ? undefined : evaluate(`\`${stdin}\``, params))
                 .then(({code, stderr, stdout}) => {
                     if (0 === code) {
                         resolve(undefined === stdout ? undefined : stdout.toString("utf-8").trim());
                         return;
                     }
                     const message = undefined === stderr ?
-                        `Command [${executable}] exited with code ${code}.` :
-                        `Command [${executable}] exited with code ${code}: ${stderr.toString("utf-8").trim()}`;
+                        `Command [${command}] exited with code ${code}.` :
+                        `Command [${command}] exited with code ${code}: ${stderr.toString("utf-8").trim()}`;
                     reject(new Error(message));
                 });
         });
@@ -127,7 +122,7 @@ class Adapters {
     constructor(
         private readonly home: string,
         private readonly env: NodeJS.Dict<string>,
-        private readonly lookup: CommandLookup
+        private readonly exists: typeof commandExists
     ) {
     }
 
@@ -135,11 +130,10 @@ class Adapters {
         if ((this.env["OS"] || "").startsWith("Windows_")) {
             return new CredentialManagerAdapter(this.home);
         }
-        const {lookup} = this;
+        const {exists} = this;
         for (const [command, config] of Object.entries(cliAdapterConfigsByCommand)) {
-            const executable = await lookup(command);
-            if (!!executable) {
-                return Promise.resolve(new CLIAdapter({executable, ...config}));
+            if (await exists(command)) {
+                return Promise.resolve(new CLIAdapter({command, ...config}));
             }
         }
         throw new Error("Unable to locate a supported credential store.");
@@ -147,14 +141,14 @@ class Adapters {
 
     static async create() {
         const home = await findHome(process.cwd());
-        return new Adapters(home, process.env, findCommand);
+        return new Adapters(home, process.env, commandExists);
     }
 }
 
 /**
  * Configurations for supported command line credential access tools.
  */
-const cliAdapterConfigsByCommand: Record<string, Omit<CLIAdapterConfig, "executable">> = {
+const cliAdapterConfigsByCommand: Record<string, Omit<CLIAdapterConfig, "command">> = {
 
     /* Ubuntu secret-tool. */
     "secret-tool": {

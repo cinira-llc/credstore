@@ -4,6 +4,17 @@ import process from "process";
 import child_process from "child_process";
 
 /**
+ * Determine whether a command exists on the system path.
+ *
+ * @param command the command name.
+ */
+const commandExists = async (command: string): Promise<boolean> => new Promise<boolean>(resolve => {
+    child_process.exec(command, err => {
+        resolve(err == null);
+    });
+});
+
+/**
  * Evaluate a JavaScript expression with a given context object as `this`.
  *
  * @param expr the expression.
@@ -11,23 +22,6 @@ import child_process from "child_process";
  */
 const evaluate = (expr: string, context: NodeJS.Dict<any> = {}): any => {
     return new Function(`with (this) return (${expr});`).call(context);
-}
-
-/**
- * Find a command on the system path based on its binary basename.
- *
- * @param command the command name.
- */
-const findCommand = (command: string): Promise<string | undefined> => {
-    return new Promise(resolve => {
-        child_process.exec(`command -v ${command}`, (err, stdout) => {
-            if (null != err) {
-                resolve(undefined);
-            } else {
-                resolve(stdout.trim());
-            }
-        });
-    });
 }
 
 /**
@@ -39,7 +33,7 @@ const findCommand = (command: string): Promise<string | undefined> => {
 const findHome = async (cwd: string) => {
     try {
         const mainPath = require.main?.path;
-        if (null !=  mainPath) {
+        if (null != mainPath) {
             return path.resolve(mainPath, "..");
         }
         await fs.promises.stat(path.resolve(cwd, "./dist/credstore.js"));
@@ -54,7 +48,7 @@ const findHome = async (cwd: string) => {
 
 /* Module exports. */
 export {
+    commandExists,
     evaluate,
-    findCommand,
     findHome
 };

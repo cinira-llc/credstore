@@ -1,6 +1,14 @@
-import {evaluate, findCommand, findHome} from "../src/utils";
+import {commandExists, evaluate, findHome} from "../src/utils";
 
 describe('utils.ts', () => {
+    describe("commandExists()", () => {
+        it("should return false for a command that does not exist", async () => {
+            expect(await commandExists("nonexistent-command")).toBe(false);
+        });
+        it("should return true for a command that exists", async () => {
+            expect(await commandExists("whoami")).toBe(true);
+        });
+    });
     describe("evaluate()", () => {
         it("should evaluate a simple expression", () => {
             expect(evaluate("1 + 1")).toBe(2);
@@ -16,14 +24,6 @@ describe('utils.ts', () => {
         it("should find the home directory", async () => {
             const home = await findHome("node");
             expect(home).toBe(process.cwd());
-        });
-    });
-    describe("findCommand()", () => {
-        it("should return undefined if the command does not exist", () => {
-            expect(findCommand("nonexistent-command")).resolves.toBeUndefined();
-        });
-        it("should return the command path if the command exists", () => {
-            expect(findCommand("ls")).resolves.toMatch(/\/ls(\.exe)?$/);
         });
     });
 });
