@@ -39,9 +39,12 @@ const findCommand = (command: string): Promise<string | undefined> => {
 const findHome = async (cwd: string) => {
     try {
         await fs.promises.stat(path.resolve(cwd, "./dist/credstore.js"));
+        console.log(`Found1 [${cwd}]`);
         return cwd;
     } catch (err) {
         if (err instanceof Error && "code" in err && "ENOENT" === err.code) {
+            const dir = path.resolve(path.dirname(process.argv[1]), "..");
+            console.log(`Found2 [${dir}]`);
             return path.resolve(path.dirname(process.argv[1]), "..");
         }
         throw err;
