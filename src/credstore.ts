@@ -9,7 +9,7 @@ will be 0 unless we explicitly exit with some other value. */
 (async () => {
     const {argv} = process;
     if (-1 !== argv.indexOf("--help") || -1 !== argv.indexOf("-h") || argv.length < 3) {
-        const command = path.basename(argv[1]);
+        const command = path.basename(argv[1]).replace(/\.[^.]+$/, "");
         console.log(`Usage: ${command} delete <service> <account>`);
         console.log(`       ${command} get <service> <account>`);
         console.log(`       ${command} set <service> <account> <password>`);
