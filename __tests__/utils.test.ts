@@ -1,4 +1,4 @@
-import {evaluate, findCommand} from "../src/utils";
+import {evaluate, findCommand, findHome} from "../src/utils";
 
 describe('utils.ts', () => {
     describe("evaluate()", () => {
@@ -10,6 +10,12 @@ describe('utils.ts', () => {
         });
         it("should call functions", () => {
             expect(evaluate("add456(a)", {add456: (v: number) => v + 456, a: 123})).toBe(579);
+        });
+    });
+    describe("findHome()", () => {
+        it("should find the home directory", async () => {
+            const home = await findHome("node");
+            expect(home).toBe(process.cwd());
         });
     });
     describe("findCommand()", () => {

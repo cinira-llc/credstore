@@ -1,25 +1,30 @@
 #!/usr/bin/env node
+import fs from "fs";
 import path from "path";
 import process from "process";
 import {Adapters} from "./adapters";
-
-
-console.log(JSON.stringify(process, null, 2));
-
-/* Will be replaced by semantic-release. */
-const version = "@@snapshot@@";
 
 /* Note: the Node process terminates when the event loop is empty, so this IIFE will run to completion and the exit code
 will be 0 unless we explicitly exit with some other value. */
 (async () => {
     const {argv} = process;
-    if (-1 !== argv.indexOf("--version") || -1 !== argv.indexOf("-v")) {
-        console.log(`credstore ${version}`);
-    } else if (-1 !== argv.indexOf("--help") || -1 !== argv.indexOf("-h") || argv.length < 3) {
+    if (-1 !== argv.indexOf("--help") || -1 !== argv.indexOf("-h") || argv.length < 3) {
         const command = path.basename(argv[1]);
         console.log(`Usage: ${command} delete <service> <account>`);
         console.log(`       ${command} get <service> <account>`);
         console.log(`       ${command} set <service> <account> <password>`);
+    } else if (-1 !== argv.indexOf("--version") || -1 !== argv.indexOf("-v")) {
+        const mainPath = require.main?.path;
+        if (null != mainPath) {
+            try {
+                const version = await fs.promises.readFile(path.resolve(mainPath, "./VERSION"), "utf8");
+                console.log(`credstore ${version}`);
+                process.exit(0);
+            } catch (err) {
+                /* Ignore. */
+            }
+        }
+        console.log("credstore (development build)");
     } else {
         const adapters = await Adapters.create();
         const adapter = await adapters.select();

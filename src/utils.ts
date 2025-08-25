@@ -38,6 +38,10 @@ const findCommand = (command: string): Promise<string | undefined> => {
  */
 const findHome = async (cwd: string) => {
     try {
+        const mainPath = require.main?.path;
+        if (null !=  mainPath) {
+            return path.resolve(mainPath, "..");
+        }
         await fs.promises.stat(path.resolve(cwd, "./dist/credstore.js"));
         return cwd;
     } catch (err) {
