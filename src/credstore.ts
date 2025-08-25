@@ -3,6 +3,9 @@ import path from "path";
 import process from "process";
 import {Adapters} from "./adapters";
 
+
+console.log(JSON.stringify(process, null, 2));
+
 /* Will be replaced by semantic-release. */
 const version = "@@snapshot@@";
 
