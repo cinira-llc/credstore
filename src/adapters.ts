@@ -39,7 +39,6 @@ class CLIAdapter implements Adapter {
     }
 
     async delete(service: string, username: string): Promise<void> {
-        const {executable, actions: {delete: action}} = this.config;
         return this.execute(this.config.actions.delete, {service, username}).then();
     }
 
@@ -75,16 +74,15 @@ class CLIAdapter implements Adapter {
  * Adapter to the Windows Credential Manager.
  */
 class CredentialManagerAdapter implements Adapter {
-    private get delegate(): Promise<CredentialManagerDelegate> {
+    private readonly delegate: CredentialManagerDelegate;
+
+    constructor(home: string) {
         const edge = require("edge-js");
-        return Promise.resolve(edge.func({
-            assemblyFile: path.resolve(this.home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
+        this.delegate = edge.func({
+            assemblyFile: path.resolve(home, "./CredManagerLib/bin/Release/net48/CredManagerLib.dll"),
             typeName: "CredManager.Util",
             methodName: "Invoke"
-        }));
-    }
-
-    constructor(private readonly home: string) {
+        });
     }
 
     async delete(service: string, username: string): Promise<void> {
@@ -101,7 +99,7 @@ class CredentialManagerAdapter implements Adapter {
     }
 
     private async execute(...args: string[]): Promise<string | void> {
-        const delegate = await this.delegate;
+        const {delegate} = this;
         return new Promise((resolve, reject) => {
             delegate(args, (error: any, result: any) => {
                 if (null != error) {
