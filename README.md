@@ -7,8 +7,8 @@ Supported Backends
 
 | System       | Backend            |
 |--------------|--------------------|
-| Ubuntu Linux | secret-tool        |
-| macOS        | security           |
+| Ubuntu Linux | `secret-tool`      |
+| macOS        | `security`         |
 | Windows      | Credential Manager |
 
 **To retrieve a credential**
