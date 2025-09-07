@@ -2,6 +2,7 @@
 import fs from "fs";
 import path from "path";
 import process from "process";
+import prompt from "prompt-sync";
 import {Adapters} from "./adapters";
 
 /* Note: the Node process terminates when the event loop is empty, so this IIFE will run to completion and the exit code
@@ -9,10 +10,10 @@ will be 0 unless we explicitly exit with some other value. */
 (async () => {
     const {argv} = process;
     if (-1 !== argv.indexOf("--help") || -1 !== argv.indexOf("-h") || argv.length < 3) {
-        const command = path.basename(argv[1]);
+        const command = path.basename(argv[1]).replace(/\.[^./]+$/, "");
         console.log(`Usage: ${command} delete <service> <account>`);
         console.log(`       ${command} get <service> <account>`);
-        console.log(`       ${command} set <service> <account> <password>`);
+        console.log(`       ${command} set <service> <account> [password]`);
     } else if (-1 !== argv.indexOf("--version") || -1 !== argv.indexOf("-v")) {
         let version = "(development build)";
         const mainPath = require.main?.path;
@@ -37,7 +38,17 @@ will be 0 unless we explicitly exit with some other value. */
                     console.log(await adapter.get(service, username));
                     break;
                 case "set":
-                    await adapter.set(service, username, password);
+                    if (null != password) {
+                        await adapter.set(service, username, password);
+                    } else {
+                        const entered = prompt({sigint: true})("Password: ", {echo: "*"});
+                        const confirmed = prompt({sigint: true})("Confirm: ", {echo: "*"});
+                        if (entered !== confirmed) {
+                            console.error("Passwords do not match.");
+                            process.exit(1);
+                        }
+                        await adapter.set(service, username, entered);
+                    }
                     break;
                 default:
                     console.error(`Unsupported action [${action}].`);
