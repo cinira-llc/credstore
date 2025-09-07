@@ -23,7 +23,7 @@ will be 0 unless we explicitly exit with some other value. */
                 /* Ignore. */
             }
         }
-        console.log(`credstore ${version}`);
+        console.log(`${path.basename(argv[1])} ${version}`);
     } else {
         const adapters = await Adapters.create();
         const adapter = await adapters.select();
